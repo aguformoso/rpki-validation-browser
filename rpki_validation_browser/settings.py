@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'rpki_validation_browser.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'rpki_validation_browser',
         'USER': 'postgres',
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': 5432,
     }
 }
