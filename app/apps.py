@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
 
-class AppConfig(AppConfig):
+class RPKIAppConfig(AppConfig):
     name = 'app'
+    verbose_name = 'RPKI Browser app'
