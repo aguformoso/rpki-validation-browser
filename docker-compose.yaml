@@ -4,6 +4,8 @@ services:
   db:
     image: postgres:11.3
     container_name: db
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
   web:
     build: .
     container_name: django
