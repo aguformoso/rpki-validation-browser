@@ -1,5 +1,6 @@
 from requests import post
 from rpki_validation_browser.settings import DEBUG
+from rpki_validation_browser.utils import config
 
 
 class MattermostClient():
@@ -17,7 +18,7 @@ class MattermostClient():
 
     def post(self, msg=""):
         post(
-            "https://mattermost.ripe.net/hooks/635wqnwnaiy6xqaq4b9frp8awe",
+            "https://mattermost.ripe.net/hooks/{token}".format(token=config.mattermost_token),
             headers={
               'Content-Type': 'application/json'
             },
