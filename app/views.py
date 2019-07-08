@@ -11,6 +11,10 @@ class ResultView(viewsets.ModelViewSet):
     http_method_names = ['get', 'head', 'options', 'post']
 
     def perform_create(self, serializer):
+        """
+        Notify the rpki-smiley Mattermost channel on new ASes doing RPKI
+        """
+
         super(ResultView, self).perform_create(serializer)
 
         # check if this is a new (rpki-valid=true, rpki-invalid=false, asns) tuple
