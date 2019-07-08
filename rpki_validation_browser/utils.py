@@ -18,6 +18,7 @@ class Config:
         }
         self.memcached = ''
         self.server_id = ''
+        self.mattermost_token = ''
 
         self.load_config_file()
 
