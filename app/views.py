@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from .serializers import ResultSerializer
 from .models import Result
-from .libs import MattermostClient
+from .libs import MattermostClient, RipestatClient
 
 
 class ResultView(viewsets.ModelViewSet):
@@ -24,6 +24,7 @@ class ResultView(viewsets.ModelViewSet):
         }
 
         asns = serializer.instance.json['asns']
+        pfx = serializer.instance.json['pfx']
 
         # there's a new AS doing RPKI if the new Result is_doing_rpki=true and there's
         # only 1 object in db (this one, has just been saved)
@@ -35,9 +36,23 @@ class ResultView(viewsets.ModelViewSet):
         ).count() == 1
 
         if new:
-            msg = "{asns} {verb} just been seen with rpki-valid=true, rpki-invalid=false".format(
-                asns=asns,
-                verb='have' if ',' in asns else 'has'
+
+            names = []
+            for asn in asns.split(','):
+                holder = RipestatClient().fetch_info(resource="AS{asn}".format(asn=asn))['data']['holder']
+                names.append(
+                    "[AS {asn}](https://stat.ripe.net/AS{asn}) ({holder})".format(
+                        asn=asn,
+                        holder=holder
+                    )
+                )
+
+            pfx = "https://stat.ripe.net/AS{asn}"
+
+            msg = "☺ {names} {verb} just been seen with rpki-valid=true, rpki-invalid=false, pfx={pfx}".format(
+                names=', '.join(names),
+                verb='have' if len(names) > 1 else 'has',
+                pfx=pfx
             )
 
             MattermostClient().send_msg(msg=msg)

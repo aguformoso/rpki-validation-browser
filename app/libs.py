@@ -1,9 +1,12 @@
-from requests import post
+from requests import post, get
 from rpki_validation_browser.settings import DEBUG
 from rpki_validation_browser.utils import config
 
 
-class MattermostClient():
+class HttpClient:
+    pass
+
+class MattermostClient(HttpClient):
 
     def __init__(self):
         super(MattermostClient, self).__init__()
@@ -26,3 +29,20 @@ class MattermostClient():
                 "text": msg
             }
         )
+
+
+class HeClient:
+    # "https://bgp.he.net/AS3333"
+    pass
+
+
+class RipestatClient(HttpClient):
+
+    def fetch_info(self, resource=None):
+
+        if resource is None:
+            return None
+
+        return get("https://stat.ripe.net/data/as-overview/data.json?resource={resource}".format(
+            resource=resource
+        )).json()
