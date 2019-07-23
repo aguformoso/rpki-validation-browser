@@ -37,8 +37,12 @@ class ResultView(viewsets.ModelViewSet):
 
         if new:
 
+            documentation_asn = []
             names = []
             for asn in asns.split(','):
+
+                documentation_asn.append(64496 <= int(asn) <= 64511 or 65536 <= int(asn) <= 65551)
+
                 holder = RipestatClient().fetch_info(resource="AS{asn}".format(asn=asn))['data']['holder']
                 names.append(
                     "[AS {asn}](https://stat.ripe.net/AS{asn}) ({holder})".format(
@@ -56,3 +60,11 @@ class ResultView(viewsets.ModelViewSet):
             )
 
             MattermostClient().send_msg(msg=msg)
+
+            # If any of the ASNs is part of the documentation range, then
+            # don't persist, as it'll be used for testing
+            # https://tools.ietf.org/html/rfc5398#section-4
+            if any(documentation_asn):
+                serializer.instance.delete()
+
+
