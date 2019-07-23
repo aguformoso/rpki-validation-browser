@@ -54,7 +54,7 @@ class ResultView(viewsets.ModelViewSet):
             msg = "☺ {names} {verb} just been seen with rpki-valid=true, rpki-invalid=false, pfx={pfx}".format(
                 names=', '.join(names),
                 verb='have' if len(names) > 1 else 'has',
-                pfx=pfx
+                pfx="[{pfx}](https://stat.ripe.net/{pfx})".format(pfx=pfx)
             )
 
             MattermostClient().send_msg(msg=msg)
