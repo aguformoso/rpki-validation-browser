@@ -51,8 +51,6 @@ class ResultView(viewsets.ModelViewSet):
                     )
                 )
 
-            pfx = "https://stat.ripe.net/AS{asn}"
-
             msg = "☺ {names} {verb} just been seen with rpki-valid=true, rpki-invalid=false, pfx={pfx}".format(
                 names=', '.join(names),
                 verb='have' if len(names) > 1 else 'has',
