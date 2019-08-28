@@ -1,0 +1,30 @@
+[
+{
+    "model": "app.result",
+    "pk": 1,
+    "fields": {
+        "json": {
+            "pfx": "193.0.20.0/23",
+            "asns": "3333",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+            "rpki-valid-passed": true,
+            "rpki-invalid-passed": true
+        },
+        "date": "2019-08-27T00:00:00.000Z"
+    }
+},
+{
+    "model": "app.result",
+    "pk": 2,
+    "fields": {
+        "json": {
+            "pfx": "193.0.20.0/23",
+            "asns": "3333",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+            "rpki-valid-passed": true,
+            "rpki-invalid-passed": true
+        },
+        "date": "2019-08-28T00:00:00.000Z"
+    }
+}
+]
