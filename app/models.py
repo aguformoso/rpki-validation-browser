@@ -82,4 +82,12 @@ class Result(Model):
         )
 
     def is_doing_rpki(self):
-        return self.json["rpki-valid-passed"] and not self.json["rpki-invalid-passed"]
+        valid = self.json["rpki-valid-passed"]
+        invalid = self.json["rpki-invalid-passed"]
+
+        if type(valid) != bool or type(invalid) != bool:
+            return False
+
+        # is able to fetch the valid resource and
+        # not able to fetch the invalid
+        return valid and not invalid
