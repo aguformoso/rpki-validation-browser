@@ -3,33 +3,83 @@ from rest_framework.test import APITestCase
 from app.models import Result
 
 
-# Create your tests here.
+class RpkiSmileyTestCase:
+    """
+    Holds all common info for test cases
+    """
+    user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) " \
+                 "AppleWebKit/537.36 (KHTML, like Gecko) " \
+                 "Chrome/75.0.3770.100 Safari/537.36"
+
 
 class ResultTestCase(TestCase):
     fixtures = ['no-rov.json']
+    asn = "3333"
+
+    def test_have_been_seen_functions(self):
+        """
+        """
+
+        self.assertEqual(
+            Result.objects.ases_have_been_seen_not_doing_rov(self.asn),
+            not Result.objects.ases_have_been_seen_doing_rov(self.asn)
+        )
+
+    def test_invalid_true(self):
+        """
+        """
+
+        # db holds only "rpki-invalid-passed": null
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            False
+        )
+
+        # # posting "rpki-invalid-passed": true won't be perceived as ROV
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asns": self.asn,
+                    "pfx": "193.0.20.0/23",
+                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": True
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            False
+        )
 
     def test_add_rov_result(self):
-        asn = "3333"
+        """
+        Multi-test
+        """
 
-        self.assertTrue(Result.objects.ases_have_been_seen_not_doing_rov(asn))
-        self.assertFalse(Result.objects.ases_have_been_seen_doing_rov(asn))
+        # conditions I expect from fixture...
+        self.assertTrue(Result.objects.ases_have_been_seen_not_doing_rov(self.asn))
+        self.assertFalse(Result.objects.ases_have_been_seen_doing_rov(self.asn))
         self.assertEqual(Result.objects.results_seen_doing_rov().count(), 0)
 
         new = Result(
             json=Result.rov_signal
         )
-        new.json.update({"asns": asn})
+        new.json.update({"asns": self.asn})
         new.save()
 
         # Test the new object is the only one seen doing ROV
-        self.assertTrue(Result.objects.ases_are_new_to_rov(asn))
+        self.assertTrue(Result.objects.ases_are_new_to_rov(self.asn))
 
         # Results for this ASN still should report as have seen
         # not doing ROV (previous results)
-        self.assertTrue(Result.objects.ases_have_been_seen_not_doing_rov(asn))
+        self.assertTrue(Result.objects.ases_have_been_seen_not_doing_rov(self.asn))
 
         # ...but also report doing ROV now (new result)
-        self.assertTrue(Result.objects.ases_have_been_seen_doing_rov(asn))
+        self.assertTrue(Result.objects.ases_have_been_seen_doing_rov(self.asn))
 
         # The total amount is 1
         self.assertEqual(Result.objects.results_seen_doing_rov().count(), 1)
@@ -59,3 +109,59 @@ class ResultApiTestCase(APITestCase):
         )
 
         self.assertEqual(Result.objects.count(), 2)
+
+
+class NullTestCase(APITestCase):
+    fixtures = ['null-rov.json']
+    asn = "24555"
+
+    def test_invalid_none(self):
+        """
+        Some browsers won't fetch the resource behind rpki-invalid-passed, posting
+
+        "rpki-valid-passed": true,
+        "rpki-invalid-passed": null
+        """
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asns": self.asn,
+                    "pfx": "193.0.20.0/23",
+                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": None
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            False
+        )
+
+    def test_rov(self):
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asns": self.asn,
+                    "pfx": "193.0.20.0/23",
+                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            True
+        )
+
