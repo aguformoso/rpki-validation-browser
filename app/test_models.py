@@ -25,36 +25,6 @@ class ResultTestCase(TestCase):
             not Result.objects.ases_have_been_seen_doing_rov(self.asn)
         )
 
-    def test_invalid_true(self):
-        """
-        """
-
-        # db holds only "rpki-invalid-passed": null
-        self.assertEqual(
-            Result.objects.ases_are_new_to_rov(asns=self.asn),
-            False
-        )
-
-        # # posting "rpki-invalid-passed": true won't be perceived as ROV
-        self.client.post(
-            path='/results/',
-            data={
-                "json": {
-                    "asns": self.asn,
-                    "pfx": "193.0.20.0/23",
-                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-                    "rpki-valid-passed": True,
-                    "rpki-invalid-passed": True
-                },
-                "date": "2019-08-27T00:00:00.000Z"
-            },
-            format='json'
-        )
-        self.assertEqual(
-            Result.objects.ases_are_new_to_rov(asns=self.asn),
-            False
-        )
-
     def test_add_rov_result(self):
         """
         Multi-test
@@ -83,6 +53,40 @@ class ResultTestCase(TestCase):
 
         # The total amount is 1
         self.assertEqual(Result.objects.results_seen_doing_rov().count(), 1)
+
+
+class RpkiAPITestCase(APITestCase):
+    fixtures = ['no-rov.json']
+    asn = "3333"
+
+    def test_invalid_true(self):
+        """
+        """
+
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            False
+        )
+
+        # # posting "rpki-invalid-passed": true won't be perceived as ROV
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asns": self.asn,
+                    "pfx": "193.0.20.0/23",
+                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": True
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+        self.assertEqual(
+            Result.objects.ases_are_new_to_rov(asns=self.asn),
+            False
+        )
 
 
 class ResultApiTestCase(APITestCase):
