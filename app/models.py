@@ -1,6 +1,7 @@
 from django.db.models import Model, Manager, DateTimeField
 from django.contrib.postgres.fields import JSONField
 from datetime import datetime
+from django.utils import timezone
 
 
 class ResultManager(Manager):
@@ -55,7 +56,7 @@ class ResultManager(Manager):
 
 class Result(Model):
     json = JSONField(default=dict)
-    date = DateTimeField(default=datetime.now)
+    date = DateTimeField(default=timezone.now)
 
     # Signal that this fetch is being performed
     # from a network which is doing Route Origin Validation
