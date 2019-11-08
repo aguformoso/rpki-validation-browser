@@ -18,7 +18,11 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
-        asns = serializer.instance.json['asn']
+        if 'asn' in serializer.instance.json.keys():
+            serializer.instance.json['asns'] = serializer.instance.json['asn']  # backwards compat.
+            serializer.instance.save()
+
+        asns = serializer.instance.json['asns']
         pfx = serializer.instance.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
