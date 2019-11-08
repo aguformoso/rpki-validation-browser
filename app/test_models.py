@@ -116,7 +116,7 @@ class RpkiAPITestCase(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asns": self.asn,
+                    "asns": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -150,7 +150,7 @@ class RpkiAPITestCaseCompat(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asn": self.asn,
+                    "asn": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -179,7 +179,7 @@ class ResultApiTestCase(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asns": documentation_asn,
+                    "asns": [documentation_asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -205,7 +205,7 @@ class ResultApiTestCaseCompat(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asn": documentation_asn,
+                    "asn": [documentation_asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -234,7 +234,7 @@ class NullTestCase(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asns": self.asn,
+                    "asns": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -256,7 +256,7 @@ class NullTestCase(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asns": self.asn,
+                    "asns": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -289,7 +289,7 @@ class NullTestCaseCompat(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asn": self.asn,
+                    "asn": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,
@@ -311,7 +311,7 @@ class NullTestCaseCompat(APITestCase):
             path='/results/',
             data={
                 "json": {
-                    "asn": self.asn,
+                    "asn": [self.asn],
                     "pfx": "193.0.20.0/23",
                     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                     "rpki-valid-passed": True,

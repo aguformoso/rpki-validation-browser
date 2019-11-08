@@ -18,9 +18,15 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
+        compat = False
         if 'asn' in serializer.instance.json.keys():
+            compat = True
             serializer.instance.json['asns'] = serializer.instance.json['asn']  # backwards compat.
-            serializer.instance.save()
+        if type(serializer.instance.json['asns']) == list:
+            compat = True
+            serializer.instance.json['asns'] = ",".join(serializer.instance.json['asns'])
+
+        if compat: serializer.instance.save()
 
         asns = serializer.instance.json['asns']
         pfx = serializer.instance.json['pfx']
