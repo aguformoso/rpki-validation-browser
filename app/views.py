@@ -18,9 +18,15 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
+        compat = False
         if 'asn' in serializer.instance.json.keys():
+            compat = True
             serializer.instance.json['asns'] = serializer.instance.json['asn']  # backwards compat.
-            serializer.instance.save()
+        if type(serializer.instance.json['asns']) == list:
+            compat = True
+            serializer.instance.json['asns'] = ",".join(serializer.instance.json['asns'])
+
+        if compat: serializer.instance.save()
 
         asns = serializer.instance.json['asns']
         pfx = serializer.instance.json['pfx']
@@ -44,7 +50,7 @@ class ResultView(viewsets.ModelViewSet):
                     )
                 )
 
-            msg = "{names} {verb} just been seen with rpki-valid=true, rpki-invalid=false, pfx={pfx}".format(
+            msg = "{names} {verb} just been seen with rpki-valid=true, rpki-invalid=false, pfx={pfx}.".format(
                 names=', '.join(names),
                 verb='have' if len(names) > 1 else 'has',
                 pfx="[{pfx}](https://stat.ripe.net/{pfx})".format(pfx=pfx)
@@ -58,10 +64,15 @@ class ResultView(viewsets.ModelViewSet):
                         json__contains={"asns": asns}
                     ).order_by('date').last()
 
-                msg += ", and we saw {subject} previously not doing Route Origin Validation (last seen: {last_seen}).".format(
+                msg += " We saw {subject} previously not doing Route Origin Validation (last seen: {last_seen}).".format(
                     subject='them' if len(names) > 1 else 'it',
                     last_seen=last_result.date.strftime("%b %d %Y %H:%M:%S")
                 )
+
+            if 'events' in serializer.instance.json.keys():
+                initialized = [x for x in serializer.instance.json['events'] if x["stage"] == "initialized"][0]
+                if initialized["data"]["originLocation"].split('/')[2] != "sg-pub.ripe.net":
+                    msg += " This result comes from a 3rd party site (not sg-pub.ripe.net)."
 
             MattermostClient().send_msg(msg=msg)
 
