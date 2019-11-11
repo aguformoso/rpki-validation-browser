@@ -1,6 +1,5 @@
 from django.db.models import Model, Manager, DateTimeField
 from django.contrib.postgres.fields import JSONField
-from datetime import datetime
 from django.utils import timezone
 
 
@@ -29,15 +28,15 @@ class ResultManager(Manager):
             json__asn__contains=asns
         ).count() >= 1
 
-    def ases_are_new_to_rov(self, asns):
+    def ases_are_new_to_rov(self, asn):
         """
         This method is to be called immediately after saving the object into DB
-        :param asns:
+        :param asn:
         :return:
         """
         return self.results_seen_doing_rov(
         ).filter(
-            json__asn__contains=asns
+            json__asn__contains=asn
         ).count() == 1
 
     @staticmethod
