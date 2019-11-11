@@ -53,3 +53,11 @@ class ResultTestCase(TestCase):
 
         # The total amount is 1
         self.assertEqual(Result.objects.results_seen_doing_rov().count(), 1)
+
+    def test_psql_icontains(self):
+
+        # Make sure "33" and ["33"] do not match json__asn__contains
+        # when asn=["3333"] is in DB
+
+        self.assertFalse(Result.objects.ases_have_been_seen_not_doing_rov(["33"]))
+        self.assertFalse(Result.objects.ases_have_been_seen_not_doing_rov("33"))
