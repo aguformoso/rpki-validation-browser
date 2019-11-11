@@ -42,15 +42,37 @@ class ResultView(viewsets.ModelViewSet):
                 },
                 "pfx": {
                     "type": "string"
-                }
+                },
+                "events": {
+                    "type": "array"
+                },
             },
             "required": ["asn", "pfx"]
         }
 
+        __json = request.data["json"]
         validate(
-            instance=request.data["json"],
+            instance=__json,
             schema=schema
         )
+
+        # Remove sensitive data we just don't want to store in our DB
+
+        # Remove individual ip address
+        if "ip" in __json.keys():
+            del __json["ip"]
+
+        # Strip out any trailing strings after /
+        if "events" in __json.keys():
+            events = __json["events"]
+            initialized = [e for e in events if e["stage"] == "initialized"]
+            if initialized:
+                i = initialized[0]
+                i["data"]["originLocation"] = i["data"]["originLocation"].split('/')[2]
+
+            # Remove individual ip address stored in events array
+            for ip_event in [e for e in events if "ip" in e["data"].keys()]:
+                del ip_event["data"]["ip"]
 
         return super(ResultView, self).create(request, *args, **kwargs)
 
@@ -103,8 +125,8 @@ class ResultView(viewsets.ModelViewSet):
                 )
 
             if 'events' in serializer.instance.json.keys():
-                initialized = [x for x in serializer.instance.json['events'] if x["stage"] == "initialized"][0]
-                if initialized["data"]["originLocation"].split('/')[2] != "sg-pub.ripe.net":
+                initialized = [event for event in serializer.instance.json['events'] if event["stage"] == "initialized"]
+                if initialized and initialized[0]["data"]["originLocation"] != "sg-pub.ripe.net":
                     msg += " This result comes from a 3rd party site (not sg-pub.ripe.net)."
 
             MattermostClient().send_msg(msg=msg)

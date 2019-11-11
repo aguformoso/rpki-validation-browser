@@ -1,6 +1,7 @@
 from django.test import override_settings
 from rest_framework.test import APITestCase
 from app.models import Result
+import json
 
 
 class RpkiSmileyTestCase:
@@ -118,4 +119,97 @@ class NullTestCase(APITestCase):
         self.assertEqual(
             Result.objects.ases_are_new_to_rov(asn=self.asn),
             True
+        )
+
+
+@override_settings(DEBUG=True)
+class DataPrivacyTestCase(APITestCase):
+    fixtures = ['null-rov.json']
+    asn = ["3333"]
+
+    def test_originlocator(self):
+        """
+        We want to make sure we're not keeping https://site/sensitive-data data in our DB
+        """
+        sensitive = "my-sensitive-data"
+        site = "8080.ripe.net"
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20.0/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            "data": {
+                                "options": {
+                                },
+                                "testUrls": [
+                                ],
+                                "originLocation": f"https://{site}/{sensitive}"
+                            },
+                            "error": None,
+                            "stage": "initialized",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        events = Result.objects.order_by('-id').first().json["events"]
+        # the string is nowhere in the Result
+        self.assertFalse(
+            sensitive in json.dumps(Result.objects.order_by('-id').first().json),
+        )
+
+        # and we're keeping just the site name
+        event = [e for e in events if e["stage"] == "initialized"][0]
+        self.assertTrue(
+            f"{site}" == event["data"]["originLocation"],
+        )
+
+    def test_ip_address(self):
+        """
+        We want to make sure we're not keeping individual ip addresses in our DB
+        """
+        ip = "193.0.20.1"
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "ip": f"{ip}",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            "data": {
+                                "ip": f"{ip}",
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 1661,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": True
+                            },
+                            "error": None,
+                            "stage": "validReceived",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # the IP address is nowhere in the Result
+        self.assertFalse(
+            ip in json.dumps(Result.objects.order_by('-id').first().json),
         )
