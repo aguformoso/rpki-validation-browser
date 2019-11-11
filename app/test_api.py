@@ -45,11 +45,6 @@ class RpkiAPITestCase(APITestCase):
             False
         )
 
-
-@override_settings(DEBUG=True)
-class ResultApiTestCase(APITestCase):
-    fixtures = ['no-rov.json']
-
     def test_documentation_asn(self):
 
         self.assertEqual(Result.objects.count(), 2)
