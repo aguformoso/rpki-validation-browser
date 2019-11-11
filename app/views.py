@@ -1,8 +1,8 @@
-from datetime import datetime
 from rest_framework import viewsets
 from .serializers import ResultSerializer
 from .models import Result
 from .libs import MattermostClient, RipestatClient
+from jsonschema import validate
 
 
 class ResultView(viewsets.ModelViewSet):
@@ -10,6 +10,49 @@ class ResultView(viewsets.ModelViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     http_method_names = ['get', 'head', 'options', 'post']
+
+    def create(self, request, *args, **kwargs):
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "json": {
+                    "type": "object"
+                },
+                # "date": {
+                #     "type": "date-time"
+                # }
+            },
+            "required": ["json"]  # "date"
+        }
+
+        validate(
+            instance=request.data,
+            schema=schema
+        )
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "asn": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pfx": {
+                    "type": "string"
+                }
+            },
+            "required": ["asn", "pfx"]
+        }
+
+        validate(
+            instance=request.data["json"],
+            schema=schema
+        )
+
+        return super(ResultView, self).create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         """
