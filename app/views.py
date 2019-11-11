@@ -1,8 +1,8 @@
-from datetime import datetime
 from rest_framework import viewsets
 from .serializers import ResultSerializer
 from .models import Result
 from .libs import MattermostClient, RipestatClient
+from jsonschema import validate
 
 
 class ResultView(viewsets.ModelViewSet):
@@ -11,6 +11,71 @@ class ResultView(viewsets.ModelViewSet):
     serializer_class = ResultSerializer
     http_method_names = ['get', 'head', 'options', 'post']
 
+    def create(self, request, *args, **kwargs):
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "json": {
+                    "type": "object"
+                },
+                # "date": {
+                #     "type": "date-time"
+                # }
+            },
+            "required": ["json"]  # "date"
+        }
+
+        validate(
+            instance=request.data,
+            schema=schema
+        )
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "asn": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pfx": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array"
+                },
+            },
+            "required": ["asn", "pfx"]
+        }
+
+        __json = request.data["json"]
+        validate(
+            instance=__json,
+            schema=schema
+        )
+
+        # Remove sensitive data we just don't want to store in our DB
+
+        # Remove individual ip address
+        if "ip" in __json.keys():
+            del __json["ip"]
+
+        # Strip out any trailing strings after /
+        if "events" in __json.keys():
+            events = __json["events"]
+            initialized = [e for e in events if e["stage"] == "initialized"]
+            if initialized:
+                i = initialized[0]
+                i["data"]["originLocation"] = i["data"]["originLocation"].split('/')[2]
+
+            # Remove individual ip address stored in events array
+            for ip_event in [e for e in events if "ip" in e["data"].keys()]:
+                del ip_event["data"]["ip"]
+
+        return super(ResultView, self).create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """
         Notify the rpki-smiley Mattermost channel on new ASes doing RPKI
@@ -18,17 +83,7 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
-        compat = False
-        if 'asn' in serializer.instance.json.keys():
-            compat = True
-            serializer.instance.json['asns'] = serializer.instance.json['asn']  # backwards compat.
-        if type(serializer.instance.json['asns']) == list:
-            compat = True
-            serializer.instance.json['asns'] = ",".join(serializer.instance.json['asns'])
-
-        if compat: serializer.instance.save()
-
-        asns = serializer.instance.json['asns']
+        asns = serializer.instance.json['asn']
         pfx = serializer.instance.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
@@ -40,7 +95,7 @@ class ResultView(viewsets.ModelViewSet):
         if new:
 
             names = []
-            for asn in asns.split(','):
+            for asn in asns:
 
                 holder = RipestatClient().fetch_info(resource="AS{asn}".format(asn=asn))['data']['holder']
                 names.append(
@@ -61,7 +116,7 @@ class ResultView(viewsets.ModelViewSet):
 
                 last_result = Result.objects.results_seen_not_doing_rov(
                     ).filter(
-                        json__contains={"asns": asns}
+                        json__asn__contains=asns
                     ).order_by('date').last()
 
                 msg += " We saw {subject} previously not doing Route Origin Validation (last seen: {last_seen}).".format(
@@ -70,8 +125,8 @@ class ResultView(viewsets.ModelViewSet):
                 )
 
             if 'events' in serializer.instance.json.keys():
-                initialized = [x for x in serializer.instance.json['events'] if x["stage"] == "initialized"][0]
-                if initialized["data"]["originLocation"].split('/')[2] != "sg-pub.ripe.net":
+                initialized = [event for event in serializer.instance.json['events'] if event["stage"] == "initialized"]
+                if initialized and initialized[0]["data"]["originLocation"] != "sg-pub.ripe.net":
                     msg += " This result comes from a 3rd party site (not sg-pub.ripe.net)."
 
             MattermostClient().send_msg(msg=msg)
@@ -79,7 +134,7 @@ class ResultView(viewsets.ModelViewSet):
         # If any of the ASNs is part of the documentation range, then
         # don't persist, as it'll be used for testing
         # https://tools.ietf.org/html/rfc5398#section-4
-        if any([Result.objects.is_documentation_asn(asn) for asn in asns.split(',')]):
+        if any([Result.objects.is_documentation_asn(asn) for asn in asns]):
             serializer.instance.delete()
 
 
