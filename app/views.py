@@ -18,17 +18,7 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
-        compat = False
-        if 'asn' in serializer.instance.json.keys():
-            compat = True
-            serializer.instance.json['asns'] = serializer.instance.json['asn']  # backwards compat.
-        if type(serializer.instance.json['asns']) == list:
-            compat = True
-            serializer.instance.json['asns'] = ",".join(serializer.instance.json['asns'])
-
-        if compat: serializer.instance.save()
-
-        asns = serializer.instance.json['asns']
+        asns = serializer.instance.json['asn']
         pfx = serializer.instance.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
@@ -40,7 +30,7 @@ class ResultView(viewsets.ModelViewSet):
         if new:
 
             names = []
-            for asn in asns.split(','):
+            for asn in asns:
 
                 holder = RipestatClient().fetch_info(resource="AS{asn}".format(asn=asn))['data']['holder']
                 names.append(
@@ -61,7 +51,7 @@ class ResultView(viewsets.ModelViewSet):
 
                 last_result = Result.objects.results_seen_not_doing_rov(
                     ).filter(
-                        json__contains={"asns": asns}
+                        json__asn__contains=asns
                     ).order_by('date').last()
 
                 msg += " We saw {subject} previously not doing Route Origin Validation (last seen: {last_seen}).".format(
@@ -79,7 +69,7 @@ class ResultView(viewsets.ModelViewSet):
         # If any of the ASNs is part of the documentation range, then
         # don't persist, as it'll be used for testing
         # https://tools.ietf.org/html/rfc5398#section-4
-        if any([Result.objects.is_documentation_asn(asn) for asn in asns.split(',')]):
+        if any([Result.objects.is_documentation_asn(asn) for asn in asns]):
             serializer.instance.delete()
 
 

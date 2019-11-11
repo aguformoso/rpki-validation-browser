@@ -3,28 +3,156 @@
     "model": "app.result",
     "pk": 1,
     "fields": {
-        "json": {
-            "pfx": "193.0.20.0/23",
-            "asns": "3333",
-            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-            "rpki-valid-passed": true,
-            "rpki-invalid-passed": null
-        },
-        "date": "2019-08-27T00:00:00.000Z"
+      "json": {
+        "pfx": "193.0.20.0/23",
+        "asn": ["3333"],
+        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+        "rpki-valid-passed": true,
+        "rpki-invalid-passed": null,
+        "events": [
+          {
+            "data": {
+              "options": {
+                "enrich": true,
+                "postResult": false,
+                "invalidTimeout": 5000
+              },
+              "testUrls": [
+                {
+                  "url": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-valid-beacon.meerval.net/valid.json",
+                  "addressFamily": 4
+                },
+                {
+                  "url": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-invalid-beacon.meerval.net/invalid.json",
+                  "addressFamily": 4
+                }
+              ],
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:70.0) Gecko/20100101 Firefox/70.0",
+              "startDateTime": "2019-10-21T13:10:41.709Z",
+              "originLocation": "https://8080.ripe.net"
+            },
+            "error": null,
+            "stage": "initialized",
+            "success": true
+          },
+          {
+            "data": {
+              "ip": "193.0.21.108",
+              "testUrl": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-valid-beacon.meerval.net/valid.json",
+              "duration": 593,
+              "addressFamily": 4,
+              "rpki-valid-passed": true
+            },
+            "error": null,
+            "stage": "validReceived",
+            "success": true
+          },
+          {
+            "data": {
+              "testUrl": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-invalid-beacon.meerval.net/invalid.json",
+              "duration": 1143,
+              "addressFamily": 4,
+              "rpki-invalid-passed": null
+            },
+            "error": null,
+            "stage": "invalidReceived",
+            "success": true
+          },
+          {
+            "data": {
+              "ip": "193.0.21.108",
+              "asns": [
+                "3333"
+              ],
+              "prefix": "193.0.20.0/23",
+              "duration": 1177,
+              "enrichUrl": "https://stat.ripe.net/data/network-info/data.json?resource=193.0.21.108"
+            },
+            "error": null,
+            "stage": "enrichedReceived",
+            "success": true
+          }
+        ]
+      },
+      "date": "2019-08-28T00:00:00.000Z"
     }
-},
-{
+  },
+    {
     "model": "app.result",
     "pk": 2,
     "fields": {
-        "json": {
-            "pfx": "193.0.20.0/23",
-            "asns": "3333",
-            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-            "rpki-valid-passed": true,
-            "rpki-invalid-passed": null
-        },
-        "date": "2019-08-28T00:00:00.000Z"
+      "json": {
+        "pfx": "193.0.20.0/23",
+        "asn": ["3333"],
+        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+        "rpki-valid-passed": true,
+        "rpki-invalid-passed": null,
+        "events": [
+          {
+            "data": {
+              "options": {
+                "enrich": true,
+                "postResult": false,
+                "invalidTimeout": 5000
+              },
+              "testUrls": [
+                {
+                  "url": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-valid-beacon.meerval.net/valid.json",
+                  "addressFamily": 4
+                },
+                {
+                  "url": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-invalid-beacon.meerval.net/invalid.json",
+                  "addressFamily": 4
+                }
+              ],
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:70.0) Gecko/20100101 Firefox/70.0",
+              "startDateTime": "2019-10-21T13:10:41.709Z",
+              "originLocation": "https://8080.ripe.net"
+            },
+            "error": null,
+            "stage": "initialized",
+            "success": true
+          },
+          {
+            "data": {
+              "ip": "193.0.21.108",
+              "testUrl": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-valid-beacon.meerval.net/valid.json",
+              "duration": 593,
+              "addressFamily": 4,
+              "rpki-valid-passed": true
+            },
+            "error": null,
+            "stage": "validReceived",
+            "success": true
+          },
+          {
+            "data": {
+              "testUrl": "https://d6efab04-07b5-450a-bad0-42fb6aaad635.rpki-invalid-beacon.meerval.net/invalid.json",
+              "duration": 1143,
+              "addressFamily": 4,
+              "rpki-invalid-passed": null
+            },
+            "error": null,
+            "stage": "invalidReceived",
+            "success": true
+          },
+          {
+            "data": {
+              "ip": "193.0.21.108",
+              "asns": [
+                "3333"
+              ],
+              "prefix": "193.0.20.0/23",
+              "duration": 1177,
+              "enrichUrl": "https://stat.ripe.net/data/network-info/data.json?resource=193.0.21.108"
+            },
+            "error": null,
+            "stage": "enrichedReceived",
+            "success": true
+          }
+        ]
+      },
+      "date": "2019-08-29T00:00:00.000Z"
     }
-}
+  }
 ]
