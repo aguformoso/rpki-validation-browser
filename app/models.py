@@ -88,6 +88,9 @@ class Result(Model):
         if type(valid) != bool or type(invalid) != bool:
             return False
 
+        if not self.json['finished-on-time']:
+            return False
+
         # is able to fetch the valid resource and
         # not able to fetch the invalid
         return valid and not invalid

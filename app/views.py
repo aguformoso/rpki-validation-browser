@@ -62,6 +62,8 @@ class ResultView(viewsets.ModelViewSet):
         if "ip" in __json.keys():
             del __json["ip"]
 
+        force_finished_on_time = False
+
         # Strip out any trailing strings after /
         if "events" in __json.keys():
             events = __json["events"]
@@ -73,6 +75,26 @@ class ResultView(viewsets.ModelViewSet):
             # Remove individual ip address stored in events array
             for ip_event in [e for e in events if "ip" in e["data"].keys()]:
                 del ip_event["data"]["ip"]
+
+            # Flag this experiment as finished-on-time if
+            # time to fetch valid < 5000
+            # time to fetch invalid < 5000
+            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
+            valid_received = [e for e in events if e["stage"] == "validReceived"]
+            if invalid_blocked and valid_received:
+                invalid_duration = invalid_blocked[0]["data"]["duration"]
+                valid_duration = valid_received[0]["data"]["duration"]
+
+                # sets the value
+                __json["finished-on-time"] = invalid_duration < 5000 and valid_duration < 5000
+            else:
+                # fallback for old clients still running out there
+                force_finished_on_time = True
+        else:
+            force_finished_on_time = True
+
+        if force_finished_on_time:
+            __json["finished-on-time"] = True
 
         return super(ResultView, self).create(request, *args, **kwargs)
 

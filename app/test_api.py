@@ -213,3 +213,144 @@ class DataPrivacyTestCase(APITestCase):
         self.assertFalse(
             ip in json.dumps(Result.objects.order_by('-id').first().json),
         )
+
+    def test_finished_on_time(self):
+        """
+        We want to make sure we're always writing json['finished-on-time'] element
+        """
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            "data": {
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 4999,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": True
+                            },
+                            "error": None,
+                            "stage": "validReceived",
+                            "success": True
+                        },
+                        {
+                            "data": {
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 4999,
+                                "addressFamily": 4,
+                                "rpki-invalid-passed": True
+                            },
+                            "error": None,
+                            "stage": "invalidBlocked",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # finished-on-time is in the Result
+        self.assertTrue(
+            'finished-on-time' in Result.objects.order_by('-id').first().json,
+        )
+        # and it's True
+        self.assertTrue(
+            Result.objects.order_by('-id').first().json['finished-on-time'],
+        )
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            "data": {
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 5001,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": True
+                            },
+                            "error": None,
+                            "stage": "validReceived",
+                            "success": True
+                        },
+                        {
+                            "data": {
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 5001,
+                                "addressFamily": 4,
+                                "rpki-invalid-passed": True
+                            },
+                            "error": None,
+                            "stage": "invalidBlocked",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # finished-on-time is False
+        self.assertFalse(
+            Result.objects.order_by('-id').first().json['finished-on-time'],
+        )
+
+        # legacy clients with events:[] will be finished-on-time
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": []
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # finished-on-time is False
+        self.assertTrue(
+            Result.objects.order_by('-id').first().json['finished-on-time'],
+        )
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    # "events": []
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # finished-on-time is False
+        self.assertTrue(
+            Result.objects.order_by('-id').first().json['finished-on-time'],
+        )
+
+        self.assertTrue(
+            Result.objects.order_by('-id').first().is_doing_rpki(),
+        )
+
