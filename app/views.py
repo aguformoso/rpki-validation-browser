@@ -83,12 +83,13 @@ class ResultView(viewsets.ModelViewSet):
             for ip_event in [e for e in events if "ip" in e["data"].keys()]:
                 del ip_event["data"]["ip"]
 
-            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
-            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
-            invalid_await = [e for e in events if e["stage"] == "invalidAwait"]
-            valid_received = [e for e in events if e["stage"] == "validReceived"]
-
             # Remove URLs containing hashes
+            if initialized:
+                for o in initialized[0]['data']['testUrls']:
+                    hash = o['url'].split('://')[1].split('.')[0]
+                    o['url'] = o['url'].replace(hash, '')
+                    del hash  # no trace of hash
+
             for event in [valid_received, invalid_received, invalid_await, invalid_blocked]:
                 if not event:
                     continue
