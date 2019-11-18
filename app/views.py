@@ -62,6 +62,9 @@ class ResultView(viewsets.ModelViewSet):
         if "ip" in __json.keys():
             del __json["ip"]
 
+        # Track if the result finished on time ( t < 5000 )
+        __json["finished-on-time"] = False
+
         # Strip out any trailing strings after /
         if "events" in __json.keys():
             events = __json["events"]
@@ -74,6 +77,30 @@ class ResultView(viewsets.ModelViewSet):
             for ip_event in [e for e in events if "ip" in e["data"].keys()]:
                 del ip_event["data"]["ip"]
 
+            # Flag this experiment as finished-on-time if
+            # time to fetch valid < 5000
+            # time to fetch invalid < 5000
+            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
+            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
+            valid_received = [e for e in events if e["stage"] == "validReceived"]
+            # ROV = True
+            if invalid_blocked and valid_received:
+                invalid_duration = invalid_blocked[0]["data"]["duration"]
+                valid_duration = valid_received[0]["data"]["duration"]
+
+                __json["finished-on-time"] = invalid_duration < 5000 and valid_duration < 5000
+
+            # ROV = False
+            elif invalid_received and valid_received:
+                invalid_duration = invalid_received[0]["data"]["duration"]
+                valid_duration = valid_received[0]["data"]["duration"]
+
+                __json["finished-on-time"] = invalid_duration < 5000 and valid_duration < 5000
+
+            else:
+                # other cases are not considered to have finished-on-time
+                pass
+
         return super(ResultView, self).create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -83,14 +110,16 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
-        asns = serializer.instance.json['asn']
-        pfx = serializer.instance.json['pfx']
+        result = serializer.instance
+
+        asns = result.json['asn']
+        pfx = result.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
-        # the new Result is_doing_rpki=true and there's
-        # only 1 object in db (this one, has just been saved)
+        # the new Result is_doing_rpki=true and  it has finished on time
+        # and there's only 1 object in db (this one, has just been saved)
 
-        new = serializer.instance.is_doing_rpki() and Result.objects.ases_are_new_to_rov(asns)
+        new = result.is_doing_rpki() and result.has_finished_ont_time() and Result.objects.ases_are_new_to_rov(asns)
 
         if new:
 
@@ -124,8 +153,8 @@ class ResultView(viewsets.ModelViewSet):
                     last_seen=last_result.date.strftime("%b %d %Y %H:%M:%S")
                 )
 
-            if 'events' in serializer.instance.json.keys():
-                initialized = [event for event in serializer.instance.json['events'] if event["stage"] == "initialized"]
+            if 'events' in result.json.keys():
+                initialized = [event for event in result.json['events'] if event["stage"] == "initialized"]
                 if initialized and initialized[0]["data"]["originLocation"] != "sg-pub.ripe.net":
                     msg += " This result comes from a 3rd party site (not sg-pub.ripe.net)."
 
@@ -135,6 +164,6 @@ class ResultView(viewsets.ModelViewSet):
         # don't persist, as it'll be used for testing
         # https://tools.ietf.org/html/rfc5398#section-4
         if any([Result.objects.is_documentation_asn(asn) for asn in asns]):
-            serializer.instance.delete()
+            result.delete()
 
 
