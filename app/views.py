@@ -110,14 +110,16 @@ class ResultView(viewsets.ModelViewSet):
 
         super(ResultView, self).perform_create(serializer)
 
-        asns = serializer.instance.json['asn']
-        pfx = serializer.instance.json['pfx']
+        result = serializer.instance
+        
+        asns = result.json['asn']
+        pfx = result.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
         # the new Result is_doing_rpki=true and there's
         # only 1 object in db (this one, has just been saved)
 
-        new = serializer.instance.is_doing_rpki() and Result.objects.ases_are_new_to_rov(asns)
+        new = result.is_doing_rpki() and Result.objects.ases_are_new_to_rov(asns)
 
         if new:
 
@@ -151,8 +153,8 @@ class ResultView(viewsets.ModelViewSet):
                     last_seen=last_result.date.strftime("%b %d %Y %H:%M:%S")
                 )
 
-            if 'events' in serializer.instance.json.keys():
-                initialized = [event for event in serializer.instance.json['events'] if event["stage"] == "initialized"]
+            if 'events' in result.json.keys():
+                initialized = [event for event in result.json['events'] if event["stage"] == "initialized"]
                 if initialized and initialized[0]["data"]["originLocation"] != "sg-pub.ripe.net":
                     msg += " This result comes from a 3rd party site (not sg-pub.ripe.net)."
 
@@ -162,6 +164,6 @@ class ResultView(viewsets.ModelViewSet):
         # don't persist, as it'll be used for testing
         # https://tools.ietf.org/html/rfc5398#section-4
         if any([Result.objects.is_documentation_asn(asn) for asn in asns]):
-            serializer.instance.delete()
+            result.delete()
 
 
