@@ -111,15 +111,15 @@ class ResultView(viewsets.ModelViewSet):
         super(ResultView, self).perform_create(serializer)
 
         result = serializer.instance
-        
+
         asns = result.json['asn']
         pfx = result.json['pfx']
 
         # We're seeing this AS doing RPKI for the first time if
-        # the new Result is_doing_rpki=true and there's
-        # only 1 object in db (this one, has just been saved)
+        # the new Result is_doing_rpki=true and  it has finished on time
+        # and there's only 1 object in db (this one, has just been saved)
 
-        new = result.is_doing_rpki() and Result.objects.ases_are_new_to_rov(asns)
+        new = result.is_doing_rpki() and result.has_finished_ont_time() and Result.objects.ases_are_new_to_rov(asns)
 
         if new:
 
