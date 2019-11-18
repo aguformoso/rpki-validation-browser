@@ -4,6 +4,11 @@ from app.models import Result
 import json
 
 
+# Makes JSON --> Python copy pasting easier
+true = True
+false = False
+null = None
+
 class RpkiSmileyTestCase:
     """
     Holds all common info for test cases
@@ -109,16 +114,41 @@ class NullTestCase(APITestCase):
                     "asn": self.asn,
                     "pfx": "193.0.20.0/23",
                     "rpki-valid-passed": True,
-                    "rpki-invalid-passed": False
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            "data": {
+                                "ip": "193.0.21.108",
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 593,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": true
+                            },
+                            "error": null,
+                            "stage": "validReceived",
+                            "success": true
+                        },
+                        {
+                            "data": {
+                                "ip": "193.0.21.108",
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 593,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": true
+                            },
+                            "error": null,
+                            "stage": "invalidReceived",
+                            "success": true
+                        }
+                    ]
                 },
                 "date": "2019-08-27T00:00:00.000Z"
             },
             format='json'
         )
 
-        self.assertEqual(
-            Result.objects.ases_are_new_to_rov(asn=self.asn),
-            True
+        self.assertTrue(
+            Result.objects.ases_are_new_to_rov(asn=self.asn)
         )
 
 
