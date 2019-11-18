@@ -239,6 +239,17 @@ class DataPrivacyTestCase(APITestCase):
                             "error": None,
                             "stage": "validReceived",
                             "success": True
+                        },
+                        {
+                            'data': {
+                                'asns': self.asn,
+                                'prefix': '193.0.20/23',
+                                'duration': 737,
+                                'enrichUrl': f"https://stat.ripe.net/data/network-info/data.json?resource={ip}"
+                            },
+                            'error': None,
+                            'stage': 'enrichedReceived',
+                            'success': True
                         }
                     ]
                 },

@@ -74,6 +74,7 @@ class ResultView(viewsets.ModelViewSet):
             invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
             invalid_await = [e for e in events if e["stage"] == "invalidAwait"]
             valid_received = [e for e in events if e["stage"] == "validReceived"]
+            enrich_received = [e for e in events if e["stage"] == "enrichedReceived"]
 
             if initialized:
                 i = initialized[0]
@@ -82,6 +83,10 @@ class ResultView(viewsets.ModelViewSet):
             # Remove individual ip address stored in events array
             for ip_event in [e for e in events if "ip" in e["data"].keys()]:
                 del ip_event["data"]["ip"]
+
+            # Remove traces of IP in enrichedReceived event
+            if enrich_received:
+                enrich_received[0]['data']['enrichUrl'] = enrich_received[0]['data']['enrichUrl'].split('resource=')[0]
 
             # Remove URLs containing hashes
             if initialized:
