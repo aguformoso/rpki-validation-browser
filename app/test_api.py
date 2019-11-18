@@ -178,6 +178,14 @@ class DataPrivacyTestCase(APITestCase):
                                 "options": {
                                 },
                                 "testUrls": [
+                                    {
+                                        'url': 'https://hash.rpki-valid-beacon.meerval.net/valid.json',
+                                        'addressFamily': 4
+                                    },
+                                    {
+                                        'url': 'https://hash.rpki-invalid-beacon.meerval.net/invalid.json',
+                                        'addressFamily': 4
+                                    }
                                 ],
                                 "originLocation": f"https://{site}/{sensitive}"
                             },
@@ -231,6 +239,17 @@ class DataPrivacyTestCase(APITestCase):
                             "error": None,
                             "stage": "validReceived",
                             "success": True
+                        },
+                        {
+                            'data': {
+                                'asns': self.asn,
+                                'prefix': '193.0.20/23',
+                                'duration': 737,
+                                'enrichUrl': f"https://stat.ripe.net/data/network-info/data.json?resource={ip}"
+                            },
+                            'error': None,
+                            'stage': 'enrichedReceived',
+                            'success': True
                         }
                     ]
                 },
@@ -242,6 +261,72 @@ class DataPrivacyTestCase(APITestCase):
         # the IP address is nowhere in the Result
         self.assertFalse(
             ip in json.dumps(Result.objects.order_by('-id').first().json),
+        )
+
+    def test_experiment_id(self):
+        """
+        We want to make sure we're not keeping the experiment ID (hash)
+        """
+
+        _hash = "this_is_a_rand0m_hash"
+
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        {
+                            'data': {
+                                "originLocation": f"https://example.org/endpoint",
+                                'testUrls': [
+                                    {
+                                        'url': f"https://{_hash}.rpki-valid-beacon.meerval.net/valid.json",
+                                        'addressFamily': 4
+                                    },
+                                    {
+                                        'url': f"https://{_hash}.rpki-invalid-beacon.meerval.net/invalid.json",
+                                        'addressFamily': 4
+                                    },
+                                ]
+                            },
+                            "stage": "initialized"
+                        },
+                        {
+                            "data": {
+                                "testUrl": f"https://{_hash}.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 1661,
+                                "addressFamily": 4,
+                                "rpki-valid-passed": True
+                            },
+                            "error": None,
+                            "stage": "validReceived",
+                            "success": True
+                        },
+                        {
+                            "data": {
+                                "testUrl": f"https://{_hash}.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 1661,
+                                "addressFamily": 4,
+                                "rpki-invalid-passed": True
+                            },
+                            "error": None,
+                            "stage": "invalidBlocked",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # the hash is nowhere in the Result
+        self.assertFalse(
+            _hash in json.dumps(Result.objects.order_by('-id').first().json)
         )
 
 
