@@ -34,9 +34,16 @@ class ResultManager(Manager):
         :param asn:
         :return:
         """
+
+        on_time_signal = {
+            'finished-on-time': True
+        }
+
         return self.results_seen_doing_rov(
         ).filter(
             json__asn__contains=asn
+        ).filter(
+            json__contains=on_time_signal
         ).count() == 1
 
     @staticmethod

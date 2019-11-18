@@ -9,6 +9,7 @@
         "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
         "rpki-valid-passed": true,
         "rpki-invalid-passed": true,
+        "finished-on-time": true,
         "events": [
           {
             "data": {
@@ -87,6 +88,7 @@
         "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
         "rpki-valid-passed": true,
         "rpki-invalid-passed": true,
+        "finished-on-time": true,
         "events": [
           {
             "data": {

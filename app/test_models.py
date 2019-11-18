@@ -38,7 +38,12 @@ class ResultTestCase(TestCase):
         new = Result(
             json=Result.rov_signal
         )
-        new.json.update({"asn": self.asn})
+        new.json.update(
+            {
+                "asn": self.asn,
+                "finished-on-time": True
+            }
+        )
         new.save()
 
         # Test the new object is the only one seen doing ROV
