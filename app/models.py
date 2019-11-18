@@ -78,6 +78,21 @@ class Result(Model):
     def __str__(self):
         return f"(AS{self.json['asn'][0] if len(self.json['asn']) >= 1 else 'Unknown AS'}) ROV={self.is_doing_rpki()}"
 
+    def get_events(self):
+
+        if 'events' in self.json.keys():
+            return self.json['events']
+
+        return []
+
+    def get_event(self, evt):
+
+        for event in self.get_events():
+            if event["stage"] == evt:
+                return event
+
+        return {}
+
     @staticmethod
     def is_event(event):
         """
