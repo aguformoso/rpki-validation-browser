@@ -214,6 +214,12 @@ class DataPrivacyTestCase(APITestCase):
             ip in json.dumps(Result.objects.order_by('-id').first().json),
         )
 
+
+@override_settings(DEBUG=True)
+class DurationTestCase(APITestCase):
+    fixtures = ['null-rov.json']
+    asn = ["3333"]
+
     def test_finished_on_time(self):
         """
         We want to make sure we're always writing json['finished-on-time'] element
@@ -326,7 +332,7 @@ class DataPrivacyTestCase(APITestCase):
         )
 
         # finished-on-time is False
-        self.assertTrue(
+        self.assertFalse(
             Result.objects.order_by('-id').first().json['finished-on-time'],
         )
 
@@ -346,11 +352,11 @@ class DataPrivacyTestCase(APITestCase):
         )
 
         # finished-on-time is False
-        self.assertTrue(
+        self.assertFalse(
             Result.objects.order_by('-id').first().json['finished-on-time'],
         )
 
-        self.assertTrue(
+        self.assertFalse(
             Result.objects.order_by('-id').first().is_doing_rpki(),
         )
 

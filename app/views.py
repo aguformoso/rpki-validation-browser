@@ -62,7 +62,8 @@ class ResultView(viewsets.ModelViewSet):
         if "ip" in __json.keys():
             del __json["ip"]
 
-        force_finished_on_time = False
+        # Track if the result finished on time ( t < 5000 )
+        __json["finished-on-time"] = False
 
         # Strip out any trailing strings after /
         if "events" in __json.keys():
@@ -80,21 +81,25 @@ class ResultView(viewsets.ModelViewSet):
             # time to fetch valid < 5000
             # time to fetch invalid < 5000
             invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
+            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
             valid_received = [e for e in events if e["stage"] == "validReceived"]
+            # ROV = True
             if invalid_blocked and valid_received:
                 invalid_duration = invalid_blocked[0]["data"]["duration"]
                 valid_duration = valid_received[0]["data"]["duration"]
 
-                # sets the value
                 __json["finished-on-time"] = invalid_duration < 5000 and valid_duration < 5000
-            else:
-                # fallback for old clients still running out there
-                force_finished_on_time = True
-        else:
-            force_finished_on_time = True
 
-        if force_finished_on_time:
-            __json["finished-on-time"] = True
+            # ROV = False
+            elif invalid_received and valid_received:
+                invalid_duration = invalid_received[0]["data"]["duration"]
+                valid_duration = valid_received[0]["data"]["duration"]
+
+                __json["finished-on-time"] = invalid_duration < 5000 and valid_duration < 5000
+
+            else:
+                # other cases are not considered to have finished-on-time
+                pass
 
         return super(ResultView, self).create(request, *args, **kwargs)
 

@@ -76,10 +76,15 @@ class Result(Model):
     objects = ResultManager()
 
     def __str__(self):
-        return "(AS{asn}) ROV={rov}".format(
-            asn=self.json['asn'],
-            rov=self.is_doing_rpki()
-        )
+        return f"(AS{self.json['asn'][0] if len(self.json['asn']) >= 1 else 'Unknown AS'}) ROV={self.is_doing_rpki()}"
+
+    @staticmethod
+    def is_event(event):
+        """
+        :param event: Python dict to be tested for event-ivity
+        """
+
+        return "data" in event and "duration" in event["data"]
 
     def is_doing_rpki(self):
         valid = self.json["rpki-valid-passed"]
@@ -88,9 +93,16 @@ class Result(Model):
         if type(valid) != bool or type(invalid) != bool:
             return False
 
-        if not self.json['finished-on-time']:
+        if not self.has_finished_ont_time():
             return False
 
         # is able to fetch the valid resource and
         # not able to fetch the invalid
         return valid and not invalid
+
+    def has_finished_ont_time(self):
+
+        if self.json.get('finished-on-time'):
+            return self.json['finished-on-time']
+        else:
+            return False
