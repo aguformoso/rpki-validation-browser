@@ -225,6 +225,9 @@ class DurationTestCase(APITestCase):
         We want to make sure we're always writing json['finished-on-time'] element
         """
 
+
+        ####
+        # t < 5000
         self.client.post(
             path='/results/',
             data={
@@ -272,6 +275,8 @@ class DurationTestCase(APITestCase):
             Result.objects.order_by('-id').first().json['finished-on-time'],
         )
 
+        ####
+        # t > 5000
         self.client.post(
             path='/results/',
             data={
@@ -315,7 +320,53 @@ class DurationTestCase(APITestCase):
             Result.objects.order_by('-id').first().json['finished-on-time'],
         )
 
-        # legacy clients with events:[] will be finished-on-time
+        ####
+        # no validReceived in the events array
+        self.client.post(
+            path='/results/',
+            data={
+                "json": {
+                    "asn": self.asn,
+                    "pfx": "193.0.20/23",
+                    "rpki-valid-passed": True,
+                    "rpki-invalid-passed": False,
+                    "events": [
+                        # {
+                        #     "data": {
+                        #         "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                        #         "duration": 5001,
+                        #         "addressFamily": 4,
+                        #         "rpki-valid-passed": True
+                        #     },
+                        #     "error": None,
+                        #     "stage": "validReceived",
+                        #     "success": True
+                        # },
+                        {
+                            "data": {
+                                "testUrl": "https://hash.rpki-valid-beacon.meerval.net/valid.json",
+                                "duration": 5001,
+                                "addressFamily": 4,
+                                "rpki-invalid-passed": True
+                            },
+                            "error": None,
+                            "stage": "invalidBlocked",
+                            "success": True
+                        }
+                    ]
+                },
+                "date": "2019-08-27T00:00:00.000Z"
+            },
+            format='json'
+        )
+
+        # finished-on-time is False
+        self.assertFalse(
+            Result.objects.order_by('-id').first().json['finished-on-time'],
+        )
+
+        ####
+        # legacy clients with events=[] will be *not* finished-on-time
         self.client.post(
             path='/results/',
             data={
@@ -336,6 +387,8 @@ class DurationTestCase(APITestCase):
             Result.objects.order_by('-id').first().json['finished-on-time'],
         )
 
+        ####
+        # clients with no events will be *not* finished-on-time
         self.client.post(
             path='/results/',
             data={
