@@ -68,7 +68,13 @@ class ResultView(viewsets.ModelViewSet):
         # Strip out any trailing strings after /
         if "events" in __json.keys():
             events = __json["events"]
+
             initialized = [e for e in events if e["stage"] == "initialized"]
+            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
+            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
+            invalid_await = [e for e in events if e["stage"] == "invalidAwait"]
+            valid_received = [e for e in events if e["stage"] == "validReceived"]
+
             if initialized:
                 i = initialized[0]
                 i["data"]["originLocation"] = i["data"]["originLocation"].split('/')[2]
@@ -77,12 +83,25 @@ class ResultView(viewsets.ModelViewSet):
             for ip_event in [e for e in events if "ip" in e["data"].keys()]:
                 del ip_event["data"]["ip"]
 
+            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
+            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
+            invalid_await = [e for e in events if e["stage"] == "invalidAwait"]
+            valid_received = [e for e in events if e["stage"] == "validReceived"]
+
+            # Remove URLs containing hashes
+            for event in [valid_received, invalid_received, invalid_await, invalid_blocked]:
+                if not event:
+                    continue
+                event = event[0]
+
+                hash = event['data']['testUrl'].split('://')[1].split('.')[0]
+                event['data']['testUrl'] = event['data']['testUrl'].replace(hash, '')
+                del hash  # no trace of hash
+
             # Flag this experiment as finished-on-time if
             # time to fetch valid < 5000
             # time to fetch invalid < 5000
-            invalid_blocked = [e for e in events if e["stage"] == "invalidBlocked"]
-            invalid_received = [e for e in events if e["stage"] == "invalidReceived"]
-            valid_received = [e for e in events if e["stage"] == "validReceived"]
+
             # ROV = True
             if invalid_blocked and valid_received:
                 invalid_duration = invalid_blocked[0]["data"]["duration"]
