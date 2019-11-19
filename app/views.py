@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from .serializers import ResultSerializer
 from .models import Result
-from .libs import MattermostClient, RipestatClient
+from .libs import MattermostClient, RipestatClient, DataProtector
 from jsonschema import validate
 
 
@@ -65,6 +65,12 @@ class ResultView(viewsets.ModelViewSet):
         # Track if the result finished on time ( t < 5000 )
         __json["finished-on-time"] = False
 
+        # Instance in charge of performing data cleanup.
+        # After de-serialising, we don't want to keep
+        # information we don't *really* need
+
+        data_protector = DataProtector()
+
         # Strip out any trailing strings after /
         if "events" in __json.keys():
             events = __json["events"]
@@ -77,32 +83,25 @@ class ResultView(viewsets.ModelViewSet):
             enrich_received = [e for e in events if e["stage"] == "enrichedReceived"]
 
             if initialized:
-                i = initialized[0]
-                i["data"]["originLocation"] = i["data"]["originLocation"].split('/')[2]
+                data_protector.protect_origin(initialized[0])
 
             # Remove individual ip address stored in events array
-            for ip_event in [e for e in events if "ip" in e["data"].keys()]:
-                del ip_event["data"]["ip"]
+            for ip_event in events:
+                data_protector.wipe_ip(ip_event)
 
             # Remove traces of IP in enrichedReceived event
             if enrich_received:
-                enrich_received[0]['data']['enrichUrl'] = enrich_received[0]['data']['enrichUrl'].split('resource=')[0]
+                data_protector.protect_entich_received(enrich_received[0])
 
             # Remove URLs containing hashes
             if initialized:
-                for o in initialized[0]['data']['testUrls']:
-                    hash = o['url'].split('://')[1].split('.')[0]
-                    o['url'] = o['url'].replace(hash, '')
-                    del hash  # no trace of hash
+                data_protector.protect_initialized(initialized[0])
 
             for event in [valid_received, invalid_received, invalid_await, invalid_blocked]:
                 if not event:
                     continue
-                event = event[0]
 
-                hash = event['data']['testUrl'].split('://')[1].split('.')[0]
-                event['data']['testUrl'] = event['data']['testUrl'].replace(hash, '')
-                del hash  # no trace of hash
+                data_protector.protect_event(event[0])
 
             # Flag this experiment as finished-on-time if
             # time to fetch valid < 5000
