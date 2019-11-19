@@ -85,7 +85,10 @@ class DataProtector:
     @staticmethod
     def protect_origin(evt):
         if 'data' in evt.keys() and 'originLocation' in evt['data'].keys():
-            evt["data"]["originLocation"] = evt["data"]["originLocation"].split('/')[2]
+
+            split_ = evt["data"]["originLocation"].split('/')
+            if len(split_) >= 3:
+                evt["data"]["originLocation"] = split_[2]
 
     @staticmethod
     def wipe_ip(evt):
