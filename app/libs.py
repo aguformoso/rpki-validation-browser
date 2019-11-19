@@ -56,7 +56,8 @@ class DataProtector:
         :param evt: Enrich received event coming from the client
         :return: Remove traces of IP in enrichedReceived event
         """
-        evt['data']['enrichUrl'] = evt['data']['enrichUrl'].split('resource=')[0]
+        if 'data' in evt.keys() and 'enrichUrl' in evt['data'].keys():
+            evt['data']['enrichUrl'] = evt['data']['enrichUrl'].split('resource=')[0]
 
     @staticmethod
     def protect_initialized(evt):
@@ -64,10 +65,11 @@ class DataProtector:
         :param evt: initialized event coming from the client
         :return: Remove URLs containing hashes
         """
-        for o in evt['data']['testUrls']:
-            hash = o['url'].split('://')[1].split('.')[0]
-            o['url'] = o['url'].replace(hash, '')
-            del hash  # no trace of hash
+        if 'data' in evt.keys() and 'testUrls' in evt['data'].keys():
+            for o in evt['data']['testUrls']:
+                hash = o['url'].split('://')[1].split('.')[0]
+                o['url'] = o['url'].replace(hash, '')
+                del hash  # no trace of hash
 
     @staticmethod
     def protect_event(evt):
@@ -75,14 +77,15 @@ class DataProtector:
         :param evt: _regular_ event event coming from the client
         :return: Remove hashes from <hash>.url.tld
         """
-
-        hash = evt['data']['testUrl'].split('://')[1].split('.')[0]
-        evt['data']['testUrl'] = evt['data']['testUrl'].replace(hash, '')
-        del hash  # no trace of hash
+        if 'data' in evt.keys() and 'testUrl' in evt['data'].keys():
+            hash = evt['data']['testUrl'].split('://')[1].split('.')[0]
+            evt['data']['testUrl'] = evt['data']['testUrl'].replace(hash, '')
+            del hash  # no trace of hash
 
     @staticmethod
     def protect_origin(evt):
-        evt["data"]["originLocation"] = evt["data"]["originLocation"].split('/')[2]
+        if 'data' in evt.keys() and 'originLocation' in evt['data'].keys():
+            evt["data"]["originLocation"] = evt["data"]["originLocation"].split('/')[2]
 
     @staticmethod
     def wipe_ip(evt):
