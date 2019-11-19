@@ -56,7 +56,7 @@ class DataProtector:
         :param evt: Enrich received event coming from the client
         :return: Remove traces of IP in enrichedReceived event
         """
-        if 'data' in evt.keys() and 'enrichUrl' in evt['data'].keys():
+        if 'data' in evt and 'enrichUrl' in evt['data']:
             evt['data']['enrichUrl'] = evt['data']['enrichUrl'].split('resource=')[0]
 
     @staticmethod
@@ -65,7 +65,7 @@ class DataProtector:
         :param evt: initialized event coming from the client
         :return: Remove URLs containing hashes
         """
-        if 'data' in evt.keys() and 'testUrls' in evt['data'].keys():
+        if 'data' in evt and 'testUrls' in evt['data']:
             for o in evt['data']['testUrls']:
                 hash = o['url'].split('://')[1].split('.')[0]
                 o['url'] = o['url'].replace(hash, '')
@@ -77,14 +77,14 @@ class DataProtector:
         :param evt: _regular_ event event coming from the client
         :return: Remove hashes from <hash>.url.tld
         """
-        if 'data' in evt.keys() and 'testUrl' in evt['data'].keys():
+        if 'data' in evt and 'testUrl' in evt['data']:
             hash = evt['data']['testUrl'].split('://')[1].split('.')[0]
             evt['data']['testUrl'] = evt['data']['testUrl'].replace(hash, '')
             del hash  # no trace of hash
 
     @staticmethod
     def protect_origin(evt):
-        if 'data' in evt.keys() and 'originLocation' in evt['data'].keys():
+        if 'data' in evt and 'originLocation' in evt['data'] and evt["data"]["originLocation"] is not None:
 
             split_ = evt["data"]["originLocation"].split('/')
             if len(split_) >= 3:
@@ -97,5 +97,5 @@ class DataProtector:
         :return:
         """
 
-        if "ip" in evt["data"].keys():
+        if "ip" in evt["data"]:
             del evt["data"]["ip"]
