@@ -1,5 +1,12 @@
 services:
   - docker
 
+before_script:
+  -  docker-compose up -d
+
 script:
-  - docker-compose up -d && docker-compose exec web python3 manage.py test && docker-compose down
+  - docker ps -a
+  - docker-compose exec web python3 manage.py test
+
+after_script:
+  - docker-compose down
