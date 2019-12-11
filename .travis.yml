@@ -3,5 +3,5 @@ services:
 
 script:
   - docker-compose up -d
-  - docker-compose exec db createdb postgres
+  - docker-compose exec db createdb -U postgres postgres
   - docker-compose exec web python3 manage.py test
