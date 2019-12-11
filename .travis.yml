@@ -1,5 +1,8 @@
 services:
   - docker
 
+before_script:
+  - mkdir db-data
+
 script:
   - docker-compose run -e ENGINE -e HOST -e PORT -e USER -e PASSWORD -e NAME web python3 manage.py test --settings=rpki_validation_browser.env_settings --no-input
