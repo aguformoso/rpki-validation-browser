@@ -1,0 +1,5 @@
+services:
+  - docker
+
+script:
+  - docker-compose run -e DJANGO_DB_ENGINE -e DJANGO_DB_HOST -e DJANGO_DB_PORT -e DJANGO_DB_USER -e DJANGO_DB_PASSWORD -e DJANGO_DB_NAME web python3 manage.py test --settings=rpki_validation_browser.env_settings --no-input
