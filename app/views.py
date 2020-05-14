@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from rest_framework import viewsets
+from django.http.response import HttpResponseForbidden
 from .serializers import ResultSerializer
 from .models import Result
 from .libs import MattermostClient, RipestatClient, DataProtector
@@ -13,6 +14,9 @@ class ResultView(viewsets.ModelViewSet):
     )
     serializer_class = ResultSerializer
     http_method_names = ['get', 'head', 'options', 'post']
+
+    def list(self, request, *args, **kwargs):
+        return HttpResponseForbidden()
 
     def create(self, request, *args, **kwargs):
 
