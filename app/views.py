@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from rest_framework import viewsets
 from .serializers import ResultSerializer
 from .models import Result
@@ -7,7 +8,9 @@ from jsonschema import validate
 
 class ResultView(viewsets.ModelViewSet):
 
-    queryset = Result.objects.all()
+    queryset = Result.objects.filter(
+        date__gt=datetime.now() - timedelta(days=30)  # capped at 30d
+    )
     serializer_class = ResultSerializer
     http_method_names = ['get', 'head', 'options', 'post']
 
