@@ -6,9 +6,3 @@ class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         fields = ['date', 'json']
-
-
-class BarebonesResultSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Result
-        fields = ['id']
