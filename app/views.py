@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from rest_framework import viewsets
-from .serializers import ResultSerializer
+from rest_framework.response import Response
+from .serializers import ResultSerializer, BarebonesResultSerializer
 from .models import Result
 from .libs import MattermostClient, RipestatClient, DataProtector
 from jsonschema import validate
@@ -13,6 +14,11 @@ class ResultView(viewsets.ModelViewSet):
     )
     serializer_class = ResultSerializer
     http_method_names = ['get', 'head', 'options', 'post']
+
+    def list(self, request, *args, **kwargs):
+        queryset = Result.objects.all()
+        serializer = BarebonesResultSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
 
